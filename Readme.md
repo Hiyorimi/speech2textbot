@@ -4,15 +4,16 @@ This is light demo of [telepot](https://github.com/nickoala/telepot) and telegra
 
 ## Demo 
 
-You can [try](https://telegram.me/sp2txt_bot) bot yourself. Just record a voice message, or forward one and wait couple of seconds.
+You can try [@sp2txt_bot](https://telegram.me/sp2txt_bot) yourself. Just record a voice message, or forward one and wait couple of seconds.
 
 ## Installation
 
-1. Get your Yandex.SpeechKit API key at [Yandex Developer Center](https://developer.tech.yandex.ru)
+1. Get your Yandex.SpeechKit API key at [Yandex Developer Center](https://developer.tech.yandex.ru). Paste it inside 
 2. Make sure [Bot Father](https://telegram.me/BotFather) approves of your intentation to create another bot. If so, get a token.
 3. Run your bot with
 
 ```
+$ mkdir downloads
 $ git clone https://github.com/Hiyorimi/speech2textbot.git
 $ mkvirtualenv speech2textbot
 (speech2textbot)$ pip install -r requirements.txt
@@ -21,7 +22,7 @@ $ mkvirtualenv speech2textbot
 ## Running 
 
 ```
-(speech2textbot)$ python speech2textbot.py [your token] [SpeechKit API key] 
+(speech2textbot)$ python speech2textbot.py [your token] 
 ```
 
 ## Final

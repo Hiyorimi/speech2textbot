@@ -10,11 +10,14 @@ import random
 import os
 
 SPEECH_KIT_API = ''
+DOWNLOADS_DIR_NAME = 'downloads/'
 
 def yadexASR(uuid, filename, key=SPEECH_KIT_API, topic = 'notes'):
-"""Get's filename as an input and performs POST request to API, according to
-docs: https://tech.yandex.ru/speechkit/cloud/doc/dg/concepts/speechkit-dg-recogn-docpage/
-"""
+    """ 
+    Get's filename as an input and performs POST request to API, according to
+    docs: https://tech.yandex.ru/speechkit/cloud/doc/dg/concepts/speechkit-dg-recogn-docpage/
+    """
+
     uuid = ''.join(c for c in uuid if c in '1234567890abcdef')
     while (len(uuid)<32):
         uuid=uuid+random.choice('1234567890abcdef')
@@ -50,9 +53,9 @@ def handle(msg):
         if content_type == 'voice':
             pprint.pprint(msg)
             if ( msg['voice']['file_size']< 1033896):
-                bot.download_file(msg['voice']['file_id'], './download/'+msg['voice']['file_id'])
-                answer = get_text_from_telegram_voice_file('./download/'+msg['voice']['file_id'])
-                os.remove('./download/'+msg['voice']['file_id'])
+                bot.download_file(msg['voice']['file_id'], DOWNLOADS_DIR_NAME + msg['voice']['file_id'])
+                answer = get_text_from_telegram_voice_file( DOWNLOADS_DIR_NAME + msg['voice']['file_id'])
+                os.remove( DOWNLOADS_DIR_NAME + msg['voice']['file_id'])
                 bot.sendMessage(chat_id, answer)
             else:
                 bot.sendMessage(chat_id, 'Слишком длинное аудиосообщение, извини. \
