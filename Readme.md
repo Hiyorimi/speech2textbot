@@ -8,8 +8,8 @@ You can try [@sp2txt_bot](https://telegram.me/sp2txt_bot) yourself. Just record 
 
 ## Installation
 
-1. Get your Yandex.SpeechKit API key at [Yandex Developer Center](https://developer.tech.yandex.ru). Paste it inside 
-2. Make sure [Bot Father](https://telegram.me/BotFather) approves of your intentation to create another bot. If so, get a token.
+1. Get your Yandex.SpeechKit API key at [Yandex Developer Center](https://developer.tech.yandex.ru).  
+2. Make sure [Bot Father](https://telegram.me/BotFather) approves your intentation to create another bot. If so, get a token.
 3. Install dependencies required for audio processing. Telegram uses OPUS for encoding voice messages, so:
 
 ```
@@ -19,7 +19,7 @@ $ sudo apt-get update && apt-get install libopus0 libopus-dev opus-tools # vorbi
 $ brew install opus-tools # vorbis-tools
 ```
 
-Installation tested on Debian Wheezy. If you have troubles with opus-tools, check out notes below.
+Installation was tested on Debian Wheezy and El Capitan. If you have troubles with opus-tools, check out notes below.
 
 4. Install dependancies and run bot with:
 
@@ -31,9 +31,9 @@ $ cd speech2textbot && mkdir downloads
 $ sed -i "s/SPEECH_KIT_API\ \=\ ''/SPEECH_KIT_API\ \=\ 'your-yandex-speech-kit-api-here'/g" speech2textbot.py
 $ mkvirtualenv speech2textbot
 (speech2textbot)$ pip install -r requirements.txt
+```
 
-
-On Mac you should add \'\' after -i:
+On Mac you should add '' after -i:
 
 ```
 $ sed -i '' "s/\=\ ''/\=\ 'your-yandex-speech-kit-api-here'/g" speech2textbot.py
@@ -50,7 +50,7 @@ $ sed -i '' "s/\=\ ''/\=\ 'your-yandex-speech-kit-api-here'/g" speech2textbot.py
 I would be grateful for any ideas for improvement, feel free to fork, copy and modify.
 
 
-## OPUS installation
+### OPUS installation
 
 If you can't build audiotools and fail to install opus-tools and opusfile from packages, you might want to build OPUS from [source](http://www.opus-codec.org/downloads/).
 
@@ -69,4 +69,4 @@ $ ./make
 $ ./make install
 ```
 
-You might need to install additional dependencies.
+You might need to install additional dependencies in the process.
