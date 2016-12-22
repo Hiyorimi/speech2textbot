@@ -1,4 +1,4 @@
-## Speech2Text telegram bot (via telepot) 
+## Speech2Text telegram bot (via telepot) v.2.0
 
 This is light demo of [telepot](https://github.com/nickoala/telepot) and telegram capabilities to improve your life a bit. You can run this bot and recognize annoying audio messages to text if you dislike them or simply can't listen right away.
 
@@ -24,8 +24,6 @@ Installation tested on Debian Wheezy. If you have troubles with opus-tools, chec
 4. Install dependancies and run bot with:
 
 ```
-$ git clone https://github.com/tuffy/python-audio-tools.git && cd python-audio-tools.git
-$ sudo make install && cd ..
 $ git clone https://github.com/Hiyorimi/speech2textbot.git
 $ cd speech2textbot && mkdir downloads
 $ sed -i "s/SPEECH_KIT_API\ \=\ ''/SPEECH_KIT_API\ \=\ 'your-yandex-speech-kit-api-here'/g" speech2textbot.py
