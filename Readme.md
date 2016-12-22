@@ -29,6 +29,7 @@ $ cd speech2textbot && mkdir downloads
 $ sed -i "s/SPEECH_KIT_API\ \=\ ''/SPEECH_KIT_API\ \=\ 'your-yandex-speech-kit-api-here'/g" speech2textbot.py
 $ mkvirtualenv speech2textbot
 (speech2textbot)$ pip install -r requirements.txt
+```
 
 
 On Mac you should add \'\' after -i:
