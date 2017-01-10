@@ -21,8 +21,11 @@ class Speech2TextBot(telepot.aio.helper.ChatHandler):
         super(Speech2TextBot, self).__init__(*args, **kwargs)
 
 
-    async def _get_text_from_telegram_voice_file (self, filename):
-        converted = AudioSegment.from_ogg(filename)
+    async def _get_text_from_telegram_voice_file (self, filename, filetype = 'voice'):
+        if filetype == 'voice':
+            converted = AudioSegment.from_ogg(filename)
+        if filetype == 'audio':
+            converted = AudioSegment.from_mp3(filename)
         converted.export(filename+'.mp3', format="mp3")
         text = await self._yadexASR(filename[:-30:-1], filename=filename+'.mp3')
         os.remove(filename+'.mp3')
@@ -58,27 +61,26 @@ class Speech2TextBot(telepot.aio.helper.ChatHandler):
         result=var[0].childNodes[0].nodeValue
         return result
 
-    async def _serve_answer(self, chat_id, msg):
-        await bot.download_file(msg['voice']['file_id'], DOWNLOADS_DIR_NAME + msg['voice']['file_id'])
-        answer = await self._get_text_from_telegram_voice_file( DOWNLOADS_DIR_NAME + msg['voice']['file_id'])
-        os.remove(DOWNLOADS_DIR_NAME + msg['voice']['file_id'])
+    async def _serve_answer(self, chat_id, msg, filetype):
+        await bot.download_file(msg[filetype]['file_id'], DOWNLOADS_DIR_NAME + msg[filetype]['file_id'])
+        answer = await self._get_text_from_telegram_voice_file( DOWNLOADS_DIR_NAME + msg[filetype]['file_id'], filetype)
+        os.remove(DOWNLOADS_DIR_NAME + msg[filetype]['file_id'])
         await bot.sendMessage(chat_id, answer)
         return
 
 
     async def on_chat_message(self, msg):
         content_type, chat_type, chat_id = glance(msg)
-        print('Chat Message:', content_type, chat_type, chat_id)
-        if content_type == 'voice':
+        print('Chat Message:', content_type, chat_type, chat_id, msg)
+        if (content_type == 'voice' or content_type == 'audio'):
             pprint.pprint(msg)
-            if ( msg['voice']['file_size']< 1033896):
-                await self._serve_answer(chat_id, msg)
+            if ( msg[content_type]['file_size']< 1033896):
+                await self._serve_answer(chat_id, msg, content_type)
             else:
                 await bot.sendMessage(chat_id, 'Слишком длинное аудиосообщение, извини. \
                     Попробуй отправить запись короче.')
 
     async def on__idle(self, event):
-        await self.sender.sendMessage('Окей, если что, пересылай сообщения или кидай войсики. Я тут.')
         self.close()
 
 
