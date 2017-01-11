@@ -9,3 +9,4 @@ telepot==10.3
 urllib3==1.19.1
 wheel==0.24.0
 yarl==0.8.1
+python-dotenv==0.6.1

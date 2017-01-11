@@ -10,27 +10,32 @@ You can try [@sp2txt_bot](https://telegram.me/sp2txt_bot) yourself. Just record 
 
 1. Get your Yandex.SpeechKit API key at [Yandex Developer Center](https://developer.tech.yandex.ru). Paste it inside 
 2. Make sure [Bot Father](https://telegram.me/BotFather) approves of your intentation to create another bot. If so, get a token.
-3. Install dependencies required for audio processing. Telegram uses OPUS for encoding voice messages, so:
+3. Install dependencies required for audio processing. 
 
 ```
-$ sudo apt-get update && apt-get install libopus0 libopus-dev opus-tools # vorbis-tools
-# if you are ok with some extra packages, you can try installing audiotools as a package
+$ sudo apt-get update && apt-get install ffmpeg 
 # or, for Mac
-$ brew install opus-tools # vorbis-tools
+$ brew install ffmpeg
 ```
 
-Installation tested on Debian Wheezy. If you have troubles with opus-tools, check out notes below.
+Installation tested on Debian Wheezy and Ubuntu 16.04. If you have troubles with opus-tools, check out notes below.
 
 4. Install dependancies and run bot with:
 
 ```
 $ git clone https://github.com/Hiyorimi/speech2textbot.git
 $ cd speech2textbot && mkdir downloads
-$ sed -i "s/SPEECH_KIT_API\ \=\ ''/SPEECH_KIT_API\ \=\ 'your-yandex-speech-kit-api-here'/g" speech2textbot.py
+$ cp env_example .env
 $ mkvirtualenv speech2textbot
 (speech2textbot)$ pip install -r requirements.txt
 ```
 
+
+You can also paste key directly in code, it's a bit dirty. In that case, provide a token when launching a bot
+
+```
+$ sed -i "s/SPEECH_KIT_API\ \=\ ''/SPEECH_KIT_API\ \=\ 'your-yandex-speech-kit-api-here'/g" speech2textbot.py
+```
 
 On Mac you should add \'\' after -i:
 
@@ -41,7 +46,7 @@ $ sed -i '' "s/\=\ ''/\=\ 'your-yandex-speech-kit-api-here'/g" speech2textbot.py
 ## Running 
 
 ```
-(speech2textbot)$ python speech2textbot.py [your token] 
+(speech2textbot)$ python speech2textbot.py
 ```
 
 ## Final
