@@ -17,14 +17,15 @@ from dotenv import load_dotenv
 import botan
 
 SPEECH_KIT_API_KEY = ''
+BOTAN_TOKEN = ''
 DOWNLOADS_DIR_NAME = 'downloads/'
 
 class Speech2TextBot(telepot.aio.helper.ChatHandler):
-    def __init__(self, seed_tuple, speech_kit_api_key,  **kwargs):
+    def __init__(self, seed_tuple, speech_kit_api_key, botan_token,  **kwargs):
         super(Speech2TextBot, self).__init__(seed_tuple, **kwargs)
         self.SPEECH_KIT_API_KEY = speech_kit_api_key
         if ('botan_token' in kwargs):
-            self.BOTAN_TOKEN = kwargs['botan_token']
+            self.BOTAN_TOKEN = kwargs.pop('botan_token','')
 
 
     async def _get_text_from_telegram_voice_file (self, filename, filetype = 'voice'):
@@ -89,10 +90,10 @@ class Speech2TextBot(telepot.aio.helper.ChatHandler):
         if (content_type == 'text'):
             pprint.pprint(msg['text'])
             if msg['text'] == '/help':
-                if (self.BOTAN_TOKEN):
-                    botan.track(self.BOTAN_TOKEN, chat_id, msg, msg['text'])
+                if (BOTAN_TOKEN != '' ):
+                    botan.track(BOTAN_TOKEN, chat_id, msg, msg['text'])
                     github_url = botan.shorten_url('https://github.com/Hiyorimi/speech2textbot',
-                                                  self.BOTAN_TOKEN, chat_id)
+                                                  BOTAN_TOKEN, chat_id)
                 else:
                     github_url = 'https://github.com/Hiyorimi/speech2textbot'
                 await bot.sendMessage(chat_id, """👾Я распознаю речь в отправленных мне голосовых сообщениях или \
