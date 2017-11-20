@@ -14,18 +14,14 @@ import random
 import os
 from os.path import join, dirname
 from dotenv import load_dotenv
-import botan
 
 SPEECH_KIT_API_KEY = ''
-BOTAN_TOKEN = ''
 DOWNLOADS_DIR_NAME = 'downloads/'
 
 class Speech2TextBot(telepot.aio.helper.ChatHandler):
-    def __init__(self, seed_tuple, speech_kit_api_key, botan_token,  **kwargs):
+    def __init__(self, seed_tuple, speech_kit_api_key, **kwargs):
         super(Speech2TextBot, self).__init__(seed_tuple, **kwargs)
         self.SPEECH_KIT_API_KEY = speech_kit_api_key
-        if ('botan_token' in kwargs):
-            self.BOTAN_TOKEN = kwargs.pop('botan_token','')
 
 
     async def _get_text_from_telegram_voice_file (self, filename, filetype = 'voice'):
@@ -90,14 +86,9 @@ class Speech2TextBot(telepot.aio.helper.ChatHandler):
         if (content_type == 'text'):
             pprint.pprint(msg['text'])
             if msg['text'] == '/help':
-                if (BOTAN_TOKEN != '' ):
-                    botan.track(BOTAN_TOKEN, chat_id, msg, msg['text'])
-                    github_url = botan.shorten_url('https://github.com/Hiyorimi/speech2textbot',
-                                                  BOTAN_TOKEN, chat_id)
-                else:
-                    github_url = 'https://github.com/Hiyorimi/speech2textbot'
+                github_url = 'https://github.com/Hiyorimi/speech2textbot'
                 await bot.sendMessage(chat_id, """👾Я распознаю речь в отправленных мне голосовых сообщениях или \
-аудиофайлах и отвечаю на них текстом. Можешь не париться, если ты на совещание или паре, а просто пересылать все \
+аудиофайлах и отвечаю на них текстом. Можешь не париться, если ты на совещании или паре, а просто пересылать все \
 сообщения мне. Я понимаю команды:
 
 /help — Доступные команды и помощь в использовании бота.
@@ -130,7 +121,7 @@ if ((SPEECH_KIT_API_KEY != '') and (SPEECH_KIT_API_KEY)):
             include_callback_query_chat_id(
                 pave_event_space())(
                     per_chat_id(types=['private']), create_open, Speech2TextBot,
-                        SPEECH_KIT_API_KEY, botan_token=BOTAN_TOKEN, timeout=40),
+                        SPEECH_KIT_API_KEY, timeout=40),
             ])
         else:
             bot = telepot.aio.DelegatorBot(TOKEN, [
