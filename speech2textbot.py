@@ -43,7 +43,6 @@ class Speech2TextBot(telepot.aio.helper.ChatHandler):
         uuid = ''.join(c for c in uuid if c in '1234567890abcdef')
         while (len(uuid)<32):
             uuid=uuid+random.choice('1234567890abcdef')
-        print (uuid)
         # Link from docs
         url = 'https://asr.yandex.net/asr_xml?uuid=%s&key=%s&topic=%s&lang=ru-RU' % (uuid, self.SPEECH_KIT_API_KEY, topic)
         # Binary mode, cause it required to send as multipart
@@ -57,7 +56,10 @@ class Speech2TextBot(telepot.aio.helper.ChatHandler):
             return requests.post(url, files={'audio' :audio}, headers=headers)
         future = loop.run_in_executor(None, _do_request)
         response = await future
-        print (response.text)
+        try:
+            print (response.text)
+        except UnicodeEncodeError:
+            pass
         xml = parseString(response.text.encode('utf-8'))
         # There are several variants, we pick first — usually most precise
         var = xml.getElementsByTagName('variant')
@@ -74,9 +76,15 @@ class Speech2TextBot(telepot.aio.helper.ChatHandler):
 
     async def on_chat_message(self, msg):
         content_type, chat_type, chat_id = glance(msg)
-        print('Chat Message:', content_type, chat_type, chat_id, msg)
+        try:
+            print('Chat Message:', content_type, chat_type, chat_id, msg)
+        except UnicodeEncodeError:
+            pass
         if (content_type == 'voice' or content_type == 'audio'):
-            pprint.pprint(msg)
+            try:
+                pprint.pprint(msg)
+            except UnicodeEncodeError:
+                pass
             if ( msg[content_type]['file_size']< 1033896):
                 await self._serve_answer(chat_id, msg, content_type)
             else:
@@ -103,33 +111,22 @@ class Speech2TextBot(telepot.aio.helper.ChatHandler):
         self.close()
 
 
-
-
-
 dotenv_path = join(dirname(__file__), '.env')
 if (load_dotenv(dotenv_path)):
     TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
     SPEECH_KIT_API_KEY = os.environ.get("SPEECH_KIT_API_KEY")
-    BOTAN_TOKEN = os.environ.get("BOTAN_TOKEN")
+    DEBUG = os.environ.get("DEBUG")
 else:
     TOKEN = sys.argv[1]  # get token from command-line
 
 if ((SPEECH_KIT_API_KEY != '') and (SPEECH_KIT_API_KEY)):
     if ((TOKEN != '') and (TOKEN)):
-        if ((BOTAN_TOKEN != '') and (BOTAN_TOKEN)):
-            bot = telepot.aio.DelegatorBot(TOKEN, [
-            include_callback_query_chat_id(
-                pave_event_space())(
-                    per_chat_id(types=['private']), create_open, Speech2TextBot,
-                        SPEECH_KIT_API_KEY, timeout=40),
-            ])
-        else:
-            bot = telepot.aio.DelegatorBot(TOKEN, [
-            include_callback_query_chat_id(
-                pave_event_space())(
-                    per_chat_id(types=['private']), create_open, Speech2TextBot,
-                        SPEECH_KIT_API_KEY, timeout=40),
-            ])
+        bot = telepot.aio.DelegatorBot(TOKEN, [
+        include_callback_query_chat_id(
+            pave_event_space())(
+                per_chat_id(types=['private']), create_open, Speech2TextBot,
+                    SPEECH_KIT_API_KEY, timeout=40),
+        ])
 
         loop = asyncio.get_event_loop()
         loop.create_task(bot.message_loop())
