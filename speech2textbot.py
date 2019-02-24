@@ -1,142 +1,151 @@
 # -*- coding: utf-8 -*-
-import sys
-import asyncio
-from telepot import message_identifier, glance
-import telepot.aio
-import telepot.aio.helper
-from telepot.aio.delegate import (
-    per_chat_id, create_open, pave_event_space, include_callback_query_chat_id)
-import pprint
-from xml.dom.minidom import parseString
-import requests
-from pydub import AudioSegment
-import random
 import os
+import sys
+import time
+import asyncio
+import pprint
+import requests
+import random
+import logging
+
+from telethon import TelegramClient, events
+from pydub import AudioSegment
+from xml.dom.minidom import parseString
 from os.path import join, dirname
 from dotenv import load_dotenv
+from collections import defaultdict
+from yandexASR import yadexASR
 
+
+logging.basicConfig(level=logging.WARNING)
 SPEECH_KIT_API_KEY = ''
-DOWNLOADS_DIR_NAME = 'downloads/'
+DOWNLOADS_DIR_NAME = './downloads/'
+# "When did we last react?" dictionary, 0.0 by default
+recent_reacts = defaultdict(float)
 
-class Speech2TextBot(telepot.aio.helper.ChatHandler):
-    def __init__(self, seed_tuple, speech_kit_api_key, **kwargs):
-        super(Speech2TextBot, self).__init__(seed_tuple, **kwargs)
-        self.SPEECH_KIT_API_KEY = speech_kit_api_key
-
-
-    async def _get_text_from_telegram_voice_file (self, filename, filetype = 'voice'):
-        if filetype == 'voice':
-            converted = AudioSegment.from_ogg(filename)
-        if filetype == 'audio':
-            converted = AudioSegment.from_mp3(filename)
-        converted.export(filename+'.mp3', format="mp3")
-        text = await self._yadexASR(filename[:-30:-1], filename=filename+'.mp3')
-        os.remove(filename+'.mp3')
-        return text
-
-    async def _yadexASR(self, uuid, filename, topic='notes'):
-        """
-        Get's filename as an input and performs POST request to API, according to
-        docs: https://tech.yandex.ru/speechkit/cloud/doc/dg/concepts/speechkit-dg-recogn-docpage/
-        """
-
-        uuid = ''.join(c for c in uuid if c in '1234567890abcdef')
-        while (len(uuid)<32):
-            uuid=uuid+random.choice('1234567890abcdef')
-        # Link from docs
-        url = 'https://asr.yandex.net/asr_xml?uuid=%s&key=%s&topic=%s&lang=ru-RU' % (uuid, self.SPEECH_KIT_API_KEY, topic)
-        # Binary mode, cause it required to send as multipart
-        audio = open(filename,'rb')
-        # x-mpeg-3 is not recommended, but it is most common codec
-        headers={'Content-Type': 'audio/x-mpeg-3'}
-
-        #Async magic
-        loop = asyncio.get_event_loop()
-        def _do_request():
-            return requests.post(url, files={'audio' :audio}, headers=headers)
-        future = loop.run_in_executor(None, _do_request)
-        response = await future
+def get_env(name, message, cast=str):
+    if name in os.environ:
+        return os.environ[name]
+    while True:
+        value = input(message)
         try:
-            print (response.text)
-        except UnicodeEncodeError:
-            pass
-        xml = parseString(response.text.encode('utf-8'))
-        # There are several variants, we pick first — usually most precise
-        var = xml.getElementsByTagName('variant')
-        result=var[0].childNodes[0].nodeValue
-        return result
-
-    async def _serve_answer(self, chat_id, msg, filetype):
-        await bot.download_file(msg[filetype]['file_id'], DOWNLOADS_DIR_NAME + msg[filetype]['file_id'])
-        answer = await self._get_text_from_telegram_voice_file( DOWNLOADS_DIR_NAME + msg[filetype]['file_id'], filetype)
-        os.remove(DOWNLOADS_DIR_NAME + msg[filetype]['file_id'])
-        await bot.sendMessage(chat_id, answer)
-        return
+            return cast(value)
+        except ValueError as e:
+            print(e, file=sys.stderr)
+            time.sleep(1)
 
 
-    async def on_chat_message(self, msg):
-        content_type, chat_type, chat_id = glance(msg)
-        try:
-            print('Chat Message:', content_type, chat_type, chat_id, msg)
-        except UnicodeEncodeError:
-            pass
-        if (content_type == 'voice' or content_type == 'audio'):
-            try:
-                pprint.pprint(msg)
-            except UnicodeEncodeError:
-                pass
-            if ( msg[content_type]['file_size']< 1033896):
-                await self._serve_answer(chat_id, msg, content_type)
-            else:
-                await bot.sendMessage(chat_id, 'Слишком длинное аудиосообщение, извини. \
-                    Попробуй отправить запись короче.')
+async def get_text_from_telegram_voice_file (filename, filetype = 'voice'):
+    if filetype == 'voice':
+        converted = AudioSegment.from_ogg(filename)
+    if filetype == 'audio':
+        converted = AudioSegment.from_mp3(filename)
+    converted.export(filename+'.mp3', format="mp3")
+    text = await yadexASR(SPEECH_KIT_API_KEY, filename[:-30:-1], filename=filename+'.mp3')
+    os.remove(filename+'.mp3')
+    return text
 
-        if (content_type == 'text'):
-            pprint.pprint(msg['text'])
-            if msg['text'] == '/help':
-                github_url = 'https://github.com/Hiyorimi/speech2textbot'
-                await bot.sendMessage(chat_id, """👾Я распознаю речь в отправленных мне голосовых сообщениях или \
-аудиофайлах и отвечаю на них текстом. Можешь не париться, если ты на совещании или паре, а просто пересылать все \
-сообщения мне. Я понимаю команды:
 
-/help — Доступные команды и помощь в использовании бота.
+async def serve_answer(filename, filetype = 'voice'):
+    answer = await get_text_from_telegram_voice_file(filename, filetype)
+    os.remove(filename)
+    return answer
 
-Если бот тебе помог, то просто расскажи о нём своим друзьям.
 
-Этот проект имеет открытый исходный код и ты можешь запустить свою версию: """ + github_url)
-            else:
-                await bot.sendMessage(chat_id, """Unfortunately, now you can use only /help command.""")
 
-    async def on__idle(self, event):
-        self.close()
+def can_react(chat_id):
+    # Get the time when we last sent a reaction (or 0)
+    last = recent_reacts[chat_id]
+
+    # Get the current time
+    now = time.time()
+
+    # If 10 minutes as seconds have passed, we can react
+    if now - last < 10 * 60:
+        # Make sure we updated the last reaction time
+        recent_reacts[chat_id] = now
+        return True
+    else:
+        return True
+
+def is_new_client(chat_id):
+    # Get the time when we last sent a reaction (or 0)
+    last = recent_reacts[chat_id]
+
+    return last == 0.0
+
+# Register `events.NewMessage` before defining the client.
+# Once you have a client, `add_event_handler` will use this event.
+@events.register(events.NewMessage)
+async def handler(event):
+    if event.raw_text != '':
+        if 'shrug' in event.raw_text:
+            if can_react(event.chat_id):
+                await event.respond(r'¯\_(ツ)_/¯')
+        elif '/help' in event.raw_text:
+            github_url = 'https://github.com/Hiyorimi/speech2textbot'
+            await event.respond("""👾Я распознаю речь в отправленных мне голосовых сообщениях или \
+    аудиофайлах и отвечаю на них текстом. Можешь не париться, если ты на совещании или паре, а просто пересылать все \
+    сообщения мне. Я понимаю команды:
+
+    /help — Доступные команды и помощь в использовании бота.
+
+    Если бот тебе помог, то просто расскажи о нём своим друзьям.
+
+    Этот проект имеет открытый исходный код и ты можешь запустить свою версию: """ + github_url)
+        else:
+            await event.respond("""Unfortunately, now you can use only /help command.""")
+    else:
+        # We can also use client methods from here
+        client = event.client
+        if event.message is not None:
+            file_shorcut = None
+            if event.message.voice is not None:
+                filetype = 'voice'
+                file_shorcut = event.message.voice
+            elif event.message.audio is not None:
+                filetype = 'audio'
+                file_shorcut = event.message.audio
+
+            if file_shorcut is not None:
+                if (file_shorcut.size < 1033896):
+                    client = event.client
+                    filename = await client.download_media(event.message, DOWNLOADS_DIR_NAME)
+                    answer = await serve_answer(filename, filetype)
+                    if answer != None:
+                        await event.respond(answer)
+                    else:
+                        await event.respond("😕 что-то пошло не так, извините.")
+                else:
+                    await event.respond('Слишком длинное аудиосообщение, извини. \
+                        Попробуй отправить запись короче.')
+
+
 
 
 dotenv_path = join(dirname(__file__), '.env')
 if (load_dotenv(dotenv_path)):
-    TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
     SPEECH_KIT_API_KEY = os.environ.get("SPEECH_KIT_API_KEY")
     DEBUG = os.environ.get("DEBUG")
 else:
-    TOKEN = sys.argv[1]  # get token from command-line
+    SPEECH_KIT_API_KEY = sys.argv[1]  # get token from command-line
 
 if ((SPEECH_KIT_API_KEY != '') and (SPEECH_KIT_API_KEY)):
-    if ((TOKEN != '') and (TOKEN)):
-        bot = telepot.aio.DelegatorBot(TOKEN, [
-        include_callback_query_chat_id(
-            pave_event_space())(
-                per_chat_id(types=['private']), create_open, Speech2TextBot,
-                    SPEECH_KIT_API_KEY, timeout=40),
-        ])
+    # Telethon
 
-        loop = asyncio.get_event_loop()
-        loop.create_task(bot.message_loop())
-        print('Listening ...')
+    client = TelegramClient(
+        os.environ.get('TG_SESSION', 'replier'),
+        get_env('TG_API_ID', 'Enter your API ID: ', int),
+        get_env('TG_API_HASH', 'Enter your API hash: '),
+        proxy=None
+    )
 
-        loop.run_forever()
-    else:
-        print ('Please regester your Bot with a @BotFather \
-        and paste it into TELEGRAM_BOT_TOKEN .env variable \
-           or pass as a script parameter.')
+    with client:
+        # This remembers the events.NewMessage we registered before
+        client.add_event_handler(handler)
+
+        print('(Press Ctrl+C to stop this)')
+        client.run_until_disconnected()
 
 else:
 
