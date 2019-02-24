@@ -1,6 +1,6 @@
 ## Speech2Text telegram bot (via telepot) v.2.0
 
-This is light demo of [telepot](https://github.com/nickoala/telepot) and telegram capabilities to improve your life a bit. You can run this bot and recognize annoying audio messages to text if you dislike them or simply can't listen right away.
+This is light demo of [Telethon](https://github.com/LonamiWebs/Telethon), [Yandex Speech Kit](https://tech.yandex.ru/speechkit/cloud/doc/guide/concepts/speechkit-cloud-about-docpage/) and telegram capabilities to improve your life a bit. You can run this bot and recognize annoying audio messages to text if you dislike them or simply can't listen right away.
 
 ## Demo 
 
