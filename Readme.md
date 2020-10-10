@@ -53,6 +53,9 @@ $ sed -i '' "s/\=\ ''/\=\ 'your-yandex-speech-kit-api-here'/g" speech2textbot.py
 
 I would be grateful for any ideas for improvement, feel free to fork, copy and modify.
 
+## Analytics
+
+You can register your BOTAN_TOKEN at @Botaniobot to track bot users. Don't forget to include token into your .env file.
 
 ## OPUS installation
 
