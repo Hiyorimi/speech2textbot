@@ -12,14 +12,17 @@ import requests
 from pydub import AudioSegment
 import random
 import os
+from os.path import join, dirname
+from dotenv import load_dotenv
 
 
 SPEECH_KIT_API_KEY = ''
 DOWNLOADS_DIR_NAME = 'downloads/'
 
 class Speech2TextBot(telepot.aio.helper.ChatHandler):
-    def __init__(self, *args, **kwargs):
-        super(Speech2TextBot, self).__init__(*args, **kwargs)
+    def __init__(self, seed_tuple, speech_kit_api_key, **kwargs):
+        super(Speech2TextBot, self).__init__(seed_tuple, **kwargs)
+        self.SPEECH_KIT_API_KEY = speech_kit_api_key
 
 
     async def _get_text_from_telegram_voice_file (self, filename, filetype = 'voice'):
@@ -32,7 +35,7 @@ class Speech2TextBot(telepot.aio.helper.ChatHandler):
         os.remove(filename+'.mp3')
         return text
 
-    async def _yadexASR(self, uuid, filename, key=SPEECH_KIT_API, topic='notes'):
+    async def _yadexASR(self, uuid, filename, topic='notes'):
         """
         Get's filename as an input and performs POST request to API, according to
         docs: https://tech.yandex.ru/speechkit/cloud/doc/dg/concepts/speechkit-dg-recogn-docpage/
@@ -43,7 +46,7 @@ class Speech2TextBot(telepot.aio.helper.ChatHandler):
             uuid=uuid+random.choice('1234567890abcdef')
         print (uuid)
         # Link from docs
-        url = 'https://asr.yandex.net/asr_xml?uuid=%s&key=%s&topic=%s&lang=ru-RU' % (uuid, key, topic)
+        url = 'https://asr.yandex.net/asr_xml?uuid=%s&key=%s&topic=%s&lang=ru-RU' % (uuid, self.SPEECH_KIT_API_KEY, topic)
         # Binary mode, cause it required to send as multipart
         audio = open(filename,'rb')
         # x-mpeg-3 is not recommended, but it is most common codec
@@ -84,16 +87,23 @@ class Speech2TextBot(telepot.aio.helper.ChatHandler):
     async def on__idle(self, event):
         self.close()
 
+print('difsdfdsfdf')
+dotenv_path = join(dirname(__file__), '.env')
+print(dotenv_path)
+if (load_dotenv(dotenv_path)):
+    TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
+    print('TOKEN:', TOKEN)
+    SPEECH_KIT_API_KEY = os.environ.get("SPEECH_KIT_API_KEY")
+    DEBUG = os.environ.get("DEBUG")
+else:
+    TOKEN = sys.argv[1]  # get token from command-line
 
-TOKEN = sys.argv[1]  # get token from command-line
-
-
-if (SPEECH_KIT_API != ''):
-
+if ((SPEECH_KIT_API_KEY != '') and (SPEECH_KIT_API_KEY)):
     bot = telepot.aio.DelegatorBot(TOKEN, [
     include_callback_query_chat_id(
         pave_event_space())(
-            per_chat_id(types=['private']), create_open, Speech2TextBot, timeout=40),
+            per_chat_id(types=['private']), create_open, Speech2TextBot,
+            SPEECH_KIT_API_KEY, timeout=40),
     ])
 
     loop = asyncio.get_event_loop()
@@ -101,7 +111,6 @@ if (SPEECH_KIT_API != ''):
     print('Listening ...')
 
     loop.run_forever()
-
 else:
 
     print ('Please regester your Yandex Speech Kit API Key at \

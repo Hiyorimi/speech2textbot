@@ -9,6 +9,7 @@ python = "^3.8"
 telepot = "^12.7"
 requests = "^2.24.0"
 pydub = "^0.24.1"
+python-dotenv = "^0.14.0"
 
 [tool.poetry.dev-dependencies]
 
