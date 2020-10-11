@@ -87,12 +87,9 @@ class Speech2TextBot(telepot.aio.helper.ChatHandler):
     async def on__idle(self, event):
         self.close()
 
-print('difsdfdsfdf')
 dotenv_path = join(dirname(__file__), '.env')
-print(dotenv_path)
 if (load_dotenv(dotenv_path)):
     TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
-    print('TOKEN:', TOKEN)
     SPEECH_KIT_API_KEY = os.environ.get("SPEECH_KIT_API_KEY")
     DEBUG = os.environ.get("DEBUG")
 else:
