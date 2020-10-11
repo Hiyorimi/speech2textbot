@@ -75,6 +75,7 @@ target/
 
 ## Directory-based project format:
 .idea/
+.vscode/
 # if you remove the above rule, at least ignore the following:
 
 # User-specific stuff:
@@ -150,3 +151,4 @@ Temporary Items
 
 # Linux trash folder which might appear on any partition or disk
 .Trash-*
+replier.session*

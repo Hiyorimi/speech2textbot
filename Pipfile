@@ -1,0 +1,23 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+pylint = "*"
+
+[packages]
+chardet = ">=2.3.0"
+python-dateutil = "==2.7.3"
+pytz = "==2018.5"
+six = "==1.11.0"
+multidict = "==2.1.4"
+pydub = "==0.16.4"
+requests = ">=2.20.0"
+urllib3 = ">=1.24.2"
+yarl = "==0.8.1"
+python-dotenv = "==0.6.1"
+telethon = "*"
+
+[requires]
+python_version = "3.7"

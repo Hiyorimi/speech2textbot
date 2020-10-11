@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
-import sys
-import asyncio
-from telepot import message_identifier, glance
-import telepot.aio
-import telepot.aio.helper
-from telepot.aio.delegate import (
-    per_chat_id, create_open, pave_event_space, include_callback_query_chat_id)
-import pprint
-from xml.dom.minidom import parseString
-import requests
-from pydub import AudioSegment
-import random
 import os
+import sys
+import time
+import asyncio
+import pprint
+import requests
+import random
+import logging
+
+from telethon import TelegramClient, events
+from pydub import AudioSegment
+from xml.dom.minidom import parseString
 from os.path import join, dirname
 from dotenv import load_dotenv
+from collections import defaultdict
+from yandexASR import yadexASR
 
 
 SPEECH_KIT_API_KEY = ''
@@ -87,16 +88,13 @@ class Speech2TextBot(telepot.aio.helper.ChatHandler):
     async def on__idle(self, event):
         self.close()
 
-print('difsdfdsfdf')
 dotenv_path = join(dirname(__file__), '.env')
-print(dotenv_path)
 if (load_dotenv(dotenv_path)):
     TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
-    print('TOKEN:', TOKEN)
     SPEECH_KIT_API_KEY = os.environ.get("SPEECH_KIT_API_KEY")
     DEBUG = os.environ.get("DEBUG")
 else:
-    TOKEN = sys.argv[1]  # get token from command-line
+    SPEECH_KIT_API_KEY = sys.argv[1]  # get token from command-line
 
 if ((SPEECH_KIT_API_KEY != '') and (SPEECH_KIT_API_KEY)):
     bot = telepot.aio.DelegatorBot(TOKEN, [

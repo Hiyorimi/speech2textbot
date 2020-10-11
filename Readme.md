@@ -1,6 +1,6 @@
 ## Speech2Text telegram bot (via telepot) v.2.0
 
-This is light demo of [telepot](https://github.com/nickoala/telepot) and telegram capabilities to improve your life a bit. You can run this bot and recognize annoying audio messages to text if you dislike them or simply can't listen right away.
+This is light demo of [Telethon](https://github.com/LonamiWebs/Telethon), [Yandex Speech Kit](https://tech.yandex.ru/speechkit/cloud/doc/guide/concepts/speechkit-cloud-about-docpage/) and telegram capabilities to improve your life a bit. You can run this bot and recognize annoying audio messages to text if you dislike them or simply can't listen right away.
 
 ## Demo 
 
@@ -24,10 +24,10 @@ Installation tested on Debian Wheezy and Ubuntu 16.04. If you have troubles with
 
 ```
 $ git clone https://github.com/Hiyorimi/speech2textbot.git
-$ cd speech2textbot && mkdir downloads
+$ cd speech2textbot
 $ cp env_example .env
-$ mkvirtualenv speech2textbot
-(speech2textbot)$ pip install -r requirements.txt
+$ pipenv shell
+(speech2textbot)$ pipenv install
 ```
 
 
@@ -47,6 +47,20 @@ $ sed -i '' "s/\=\ ''/\=\ 'your-yandex-speech-kit-api-here'/g" speech2textbot.py
 
 ```
 (speech2textbot)$ python speech2textbot.py
+```
+
+## Docker
+
+```bash
+$ docker build -t speech2txtbot_docker .
+$ docker run -d --name=speech2txtbot speech2txtbot_docker
+```
+
+## Docker debug
+
+```bash
+docker run -d --name=speech2txtbot speech2txtbot_docker /bin/sh -c "while true; do sleep 2; df -h; done"
+docker exec -it speech2txtbot /bin/sh
 ```
 
 ## Final
